@@ -2,18 +2,29 @@
 package com.example.bdlled
 
 import android.graphics.Color
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.example.bdlled.databinding.ActivityMainBinding
 import com.github.dhaval2404.colorpicker.ColorPickerDialog
 import com.github.dhaval2404.colorpicker.model.ColorShape
 import com.github.dhaval2404.colorpicker.util.setVisibility
-import jsonData_config
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import jAllData
+import jEffect
+import jsonData
+import org.json.JSONObject
+
+
+var gAllData = Gson().fromJson(jsonData,jAllData::class.java)
+
+//var selectedEffect = jEffect("[empty]",0, JsonObject())
+
 
 //class MainActivity : AppCompatActivity() , AdapterView.OnItemSelectedListener{ //"pojebane"
 class MainActivity : AppCompatActivity(){
@@ -32,13 +43,17 @@ class MainActivity : AppCompatActivity(){
         bind.edColor1.setBackgroundColor(Color.parseColor("#000000"))
         bind.edColor2.setBackgroundColor(Color.parseColor("#000000"))
         bind.lbPalette.text = resources.getString(R.string.lbPalette)
-        bind.spPalette.setSelection(0)
+          bind.spPalette.setSelection(0)
         //TAKIE TROCHE NA PALE
         bind.lbCustom.text = resources.getString(R.string.lbCustom)
+/*
+        //zaskakujące, ale To w chwili onCreate jest nullem
         bind.spCustom.adapter = ArrayAdapter(this,
                                                 android.R.layout.simple_spinner_dropdown_item,
                                                 resources.getStringArray(R.array.TestCustomParameterList))
+ */
         bind.spCustom.setSelection(0)
+
 
         bind.lbParam1.text = resources.getString(R.string.lbParam1)
         clearParamVal(bind.sbParam1)
@@ -96,6 +111,10 @@ class MainActivity : AppCompatActivity(){
         bind.swBool2.setVisibility(false)
 
         bind.btnEffectConfirm.setVisibility(false)
+    }
+
+    private fun showConfirmButton(){
+        bind.btnEffectConfirm.setVisibility(true)
     }
 
     private fun setEffectName( name : String ){
@@ -196,6 +215,27 @@ class MainActivity : AppCompatActivity(){
                 }
         }
     }
+
+    private fun updateParamVal(parmName : String , sb :SeekBar ){
+        val thisEffect = gAllData.effects[bind.spEffect.selectedItemPosition]
+            if(thisEffect.data.has(parmName)){
+                thisEffect.data.addProperty(parmName,sb.progress)
+            } else{
+                Toast.makeText(this, "Effect dont have "+parmName+ " parameter", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun prepareUpdatedData() : String {
+        val thisEffect = gAllData.effects[bind.spEffect.selectedItemPosition]
+        val toSendEffect = JsonObject()
+        toSendEffect.addProperty("cmd","UPDATE_EFFECT")
+        toSendEffect.addProperty("name", thisEffect.name)
+        toSendEffect.addProperty("editable" , thisEffect.editable)
+        toSendEffect.add("data",thisEffect.data)
+
+        return toSendEffect.toString()
+    }
+
     /*
     * pi - prepare interface
     *  Idea - > Get Data from "current sellected" object
@@ -211,6 +251,98 @@ class MainActivity : AppCompatActivity(){
         setParamVal(2,"Papa2:",6,5,10)
         setParamBool(1,"This T",true)
         setParamBool(2,"ThisF",false)
+        showConfirmButton()
+    }
+
+    private fun piBeatWave(){
+        // "Beat wave"
+        val index = bind.spEffect.selectedItemPosition
+        clearAndHideEffectInterface()
+        setEffectName(gAllData.effects[index].name)
+        if (gAllData.effects[index].editable > 0) {
+            val thisEffectData = gAllData.effects[index].data
+            if (thisEffectData.has("pulse1")) {
+                setParamVal(1, "Pulse 1:", thisEffectData.get("pulse1").asInt, 1, 30)
+            }
+            if (thisEffectData.has("pulse2")) {
+                setParamVal(2, "Pulse 2:", thisEffectData.get("pulse2").asInt, 1, 30)
+            }
+            if (thisEffectData.has("pulse3")) {
+                setParamVal(3, "Pulse 3:", thisEffectData.get("pulse3").asInt, 1, 30)
+            }
+            if (thisEffectData.has("pulse4")) {
+                setParamVal(4, "Pulse 4:", thisEffectData.get("pulse4").asInt, 1, 30)
+            }
+            showConfirmButton()
+        }else{
+            Toast.makeText(this,"This "+gAllData.effects[index].name+ "is not editable",Toast.LENGTH_SHORT).show()
+        }
+    }
+    private fun upBeatWave(){
+        updateParamVal("pulse1",bind.sbParam1)
+        updateParamVal("pulse2",bind.sbParam2)
+        updateParamVal("pulse3",bind.sbParam3)
+        updateParamVal("pulse4",bind.sbParam4)
+        Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
+    }
+
+    private fun piBlendWave(){
+        // "Blend wave"
+        val index = bind.spEffect.selectedItemPosition
+        clearAndHideEffectInterface()
+        setEffectName(gAllData.effects[index].name)
+        if (gAllData.effects[index].editable > 0) {
+            val thisEffectData = gAllData.effects[index].data
+            if (thisEffectData.has("speed")) {
+                setParamVal(1, "Speed:", thisEffectData.get("speed").asInt, 1, 12)
+            }
+            if (thisEffectData.has("mH1")) {
+                setParamVal(2, "Step 1:", thisEffectData.get("mH1").asInt, 1, 24)
+            }
+            if (thisEffectData.has("mH2")) {
+                setParamVal(3, "Step 2:", thisEffectData.get("mH2").asInt, 1, 24)
+            }
+            showConfirmButton()
+        }else{
+            Toast.makeText(this,"This "+gAllData.effects[index].name+ "is not editable",Toast.LENGTH_SHORT).show()
+        }
+    }
+    private fun upBlendWave() {
+        updateParamVal("speed", bind.sbParam1)
+        updateParamVal("mH1", bind.sbParam2)
+        updateParamVal("mH2", bind.sbParam3)
+        Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
+    }
+
+    private fun piBlur(){
+        val index = bind.spEffect.selectedItemPosition
+        clearAndHideEffectInterface()
+        setEffectName(gAllData.effects[index].name)
+        if (gAllData.effects[index].editable > 0) {
+            val thisEffectData = gAllData.effects[index].data
+            if (thisEffectData.has("speed")) {
+                setParamVal(1, "Speed:", thisEffectData.get("speed").asInt, 1, 10)
+            }
+            if (thisEffectData.has("o1")) {
+                setParamVal(2, "Offset 1:", thisEffectData.get("o1").asInt, 1, 20)
+            }
+            if (thisEffectData.has("o2")) {
+                setParamVal(3, "Offset 2:", thisEffectData.get("o2").asInt, 1, 20)
+            }
+            if (thisEffectData.has("o3")) {
+                setParamVal(4, "Offset 3:", thisEffectData.get("o3").asInt, 1, 20)
+            }
+            showConfirmButton()
+        }else{
+            Toast.makeText(this,"This "+gAllData.effects[index].name+ "is not editable",Toast.LENGTH_SHORT).show()
+        }
+    }
+    private fun upBlur(){
+        updateParamVal("speed",bind.sbParam1)
+        updateParamVal("o1",bind.sbParam2)
+        updateParamVal("o2",bind.sbParam3)
+        updateParamVal("o3",bind.sbParam4)
+        Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -255,6 +387,7 @@ class MainActivity : AppCompatActivity(){
         bind.spMode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                gAllData.config.mode = position
                 Toast.makeText(this@MainActivity, "M: " + parent.getItemAtPosition(position) + " : " + position, Toast.LENGTH_SHORT).show()
             }
             override fun onNothingSelected(parent: AdapterView<*>) {
@@ -267,12 +400,17 @@ class MainActivity : AppCompatActivity(){
         bind.spEffect.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
             override fun onItemSelected(
                 parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                gAllData.config.selected = position
+                when(position){
+                    0 -> piBeatWave()
+                    1 -> piBlendWave()
+                    2 -> piBlur()
+                }
                 Toast.makeText(this@MainActivity, "E: " + parent.getItemAtPosition(position) + " : " + position, Toast.LENGTH_SHORT).show()
             }
             override fun onNothingSelected(parent: AdapterView<*>) {
                 // write code to perform some action
             }
-
         }
         //----time
         bind.sbTime.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -282,6 +420,7 @@ class MainActivity : AppCompatActivity(){
             override fun onStartTrackingTouch(sb: SeekBar?) {
             }
             override fun onStopTrackingTouch(sb: SeekBar?) {
+                gAllData.config.time = sb!!.progress
                 Toast.makeText(this@MainActivity, "Time seek bar last val : ${sb?.progress}", Toast.LENGTH_SHORT).show()
             }
         })
@@ -293,13 +432,29 @@ class MainActivity : AppCompatActivity(){
                 .setColorShape(ColorShape.CIRCLE)   // Default ColorShape.CIRCLE
                 .setDefaultColor("#ff0000")     // Pass Default Color
                 .setColorListener { _, colorHex ->
-                    Toast.makeText(this, "Main Color:"+colorHex+" ", Toast.LENGTH_SHORT).show()
-                    bind.tvColorMain.setBackgroundColor(Color.parseColor(colorHex))
+                    val thisColorInt = Color.parseColor(colorHex)
+                    bind.tvColorMain.setBackgroundColor(thisColorInt)
+                    gAllData.config.color.r = Color.red(thisColorInt)
+                    gAllData.config.color.g = Color.green(thisColorInt)
+                    gAllData.config.color.b = Color.blue(thisColorInt)
+                    Toast.makeText(this, "Main Color RGB:"+ gAllData.config.color.toString()+"  ", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this, "Main Color HEX:"+colorHex+"  ", Toast.LENGTH_SHORT).show()
                 }.show()
         }
         //----confirm
         bind.btnMainConfirm.setOnClickListener {
-            Toast.makeText(this, "Main confirm ", Toast.LENGTH_SHORT).show()
+            val updatedConfig = JsonObject()
+            val updatedColor = JsonObject()
+            updatedConfig.addProperty("cmd","UPDATE_CONFIG")
+            updatedConfig.addProperty("mode", gAllData.config.mode)
+            updatedConfig.addProperty("selected", gAllData.config.selected)
+            updatedColor.addProperty("r", gAllData.config.color.r)
+            updatedColor.addProperty("g", gAllData.config.color.g)
+            updatedColor.addProperty("b", gAllData.config.color.b)
+            updatedConfig.add("color",updatedColor)
+            updatedConfig.addProperty("time", gAllData.config.time)
+            Toast.makeText(this, updatedConfig.toString(), Toast.LENGTH_LONG).show()
+            //Toast.makeText(this, "Main confirm ", Toast.LENGTH_SHORT).show()
         }
         //------------------------Effect settings----------------------------------------------------
         //----pick color 1
@@ -407,23 +562,29 @@ class MainActivity : AppCompatActivity(){
         }
         //----button confirm effect
         bind.btnEffectConfirm.setOnClickListener {
-            Toast.makeText(this, "Effect confirm", Toast.LENGTH_SHORT).show()
+            val index =  bind.spEffect.selectedItemPosition
+            when (index){
+                0 -> upBeatWave()
+                1 -> upBlendWave()
+                2 -> upBlur()
+            }
+            Toast.makeText(this, "Effect confirm : $index", Toast.LENGTH_SHORT).show()
         }
 
         //------------------------test panel--------------------------------------------------------
         // TEST PANEL///
         bind.btnTest1.setOnClickListener {
             //Toast.makeText(this, "Test1 click", Toast.LENGTH_SHORT).show()
-            piTest()
+            piBeatWave()
         }
         bind.btnTest2.setOnClickListener {
             //Toast.makeText(this, "Test2 click", Toast.LENGTH_SHORT).show()
             //bind.panelMainSettings.setVisibility(visible = false)
-            piTest()
+            piBlendWave()
         }
         bind.btnTest3.setOnClickListener {
-            Toast.makeText(this,jsonData_config, Toast.LENGTH_SHORT).show()
-            //bind.panelMainSettings.setVisibility(true)
+                //Toast.makeText(this, "${gAllData.effects[5].toString()}", Toast.LENGTH_LONG).show()
+            piBlur()
         }
     }
 }

@@ -1,17 +1,4 @@
 
-val jsonData_config : String ="""
-"config": {
-		"mode": 0,
-		"selected": 4,
-		"color": {
-			"r": 128,
-			"g": 63,
-			"b": 67
-		},
-		"time": 20
-	}    
-""".trimIndent()
-
 val jsonData : String ="""
 {
 	"config": {

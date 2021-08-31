@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BdlLed 1.1.22</string>
+    <string name="app_name">BdlLed 1.1.27</string>
 
     <string name="lbMode">Tryb pracy :</string>
     <string name="btnConnect">Połącz</string>
@@ -42,15 +42,15 @@
     </string-array>
 
     <string-array name="TestEffectList">
-        <item>Effect 1</item>
-        <item>Random color dots</item>
-        <item>Color Wipe </item>
-        <item>Blur </item>
-        <item>Fire 1</item>
-        <item>Fireworks 1</item>
-        <item>BPM</item>
-        <item>Pulse</item>
-        <item>Rainbow </item>
+        <item>Beat wave</item>
+        <item>Blend wave</item>
+        <item>Blur</item>
+        <item>Confeti</item>
+        <item>Sineleon</item>
+        <item>Bpm</item>
+        <item>Juggle</item>
+        <item>Dot beat</item>
+        <item>Easing</item>
     </string-array>
 
     <string-array name="TestCustomParameterList">
