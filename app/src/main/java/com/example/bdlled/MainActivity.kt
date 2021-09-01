@@ -875,7 +875,7 @@ class MainActivity : AppCompatActivity(){
         Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
     }
     //"Running color dots 2" palette , color1 , param1 , param2
-    private fun piRunningColorDots2(){ //color 1 parm 1 parm2 parm 3
+    private fun piRunningColorDots2(){ //color 1 parm 1 bool1
         val index = bind.spEffect.selectedItemPosition
         clearAndHideEffectInterface()
         setEffectName(gAllData.effects[index].name)
@@ -1035,6 +1035,175 @@ class MainActivity : AppCompatActivity(){
         updateParamVal("delay",bind.sbParam3)
         Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
     }
+    //"Fireworks" , parm1 , parm2
+    private fun piFireworks(){
+        val index = bind.spEffect.selectedItemPosition
+        clearAndHideEffectInterface()
+        setEffectName(gAllData.effects[index].name)
+        if (gAllData.effects[index].editable > 0) {
+            val thisEffectData = gAllData.effects[index].data
+            if (thisEffectData.has("size")) {
+                setParamVal(1, "Size :", thisEffectData.get("size").asInt, 1, 9)
+            }
+            if (thisEffectData.has("speed")) {
+                setParamVal(2, "Speed :", thisEffectData.get("speed").asInt, 1, 3)
+            }
+            showConfirmButton()
+        }
+    }
+    private fun upFireworks() {
+        updateParamVal("size",bind.sbParam1)
+        updateParamVal("speed",bind.sbParam2)
+        Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
+    }
+    //"Fireworks 2" ,
+    // private fun piFireworks2(){} //not implemented
+    // private fun upFireworks2(){} //not implemented
+    //"Sin-neon" ,
+    // private fun piSinNeon(){} //not implemented
+    // private fun upSinNeon(){} //not implemented
+    //"Carusel" ,
+    // private fun piCarusel(){}// not implemented
+    // private fun upCarusel(){}// not implemented
+    //"Color Wipe" , color1 , color2 , parm1 , parm2 , bool
+    private fun piColorWipe(){
+        val index = bind.spEffect.selectedItemPosition
+        clearAndHideEffectInterface()
+        setEffectName(gAllData.effects[index].name)
+        if (gAllData.effects[index].editable > 0) {
+            val thisEffectData = gAllData.effects[index].data
+            var col: JsonObject
+            var r = 0
+            var g = 0
+            var b = 0
+            if (thisEffectData.has("color1")){
+                col = thisEffectData.get("color1").asJsonObject
+                if (col.has("r")) { r = col.get("r").asInt  }
+                if (col.has("g")) { g = col.get("g").asInt  }
+                if (col.has("b")) { b = col.get("b").asInt  }
+                setParamColor(1 , r , g , b)
+            }
+            if (thisEffectData.has("color2")){
+                col = thisEffectData.get("color2").asJsonObject
+                if (col.has("r")) { r = col.get("r").asInt }
+                if (col.has("g")) { g = col.get("g").asInt }
+                if (col.has("b")) { b = col.get("b").asInt }
+                setParamColor(2 , r , g , b)
+            }
+            if (thisEffectData.has("delay1")) {
+                setParamVal(1, "Delay 1:", thisEffectData.get("delay1").asInt, 10, 100)
+            }
+            if (thisEffectData.has("delay2")) {
+                setParamVal(2, "Delay 2:", thisEffectData.get("delay2").asInt, 10, 100)
+            }
+            if (thisEffectData.has("clear")){
+                setParamBool(1,"Clear :",thisEffectData.get("clear").asInt)
+            }
+
+            showConfirmButton()
+        }
+
+    }
+    private fun upColorWipe(){
+        updateParamCol("color1",bind.edColor1)
+        updateParamCol("color2",bind.edColor2)
+        updateParamVal("delay1",bind.sbParam1)
+        updateParamVal("delay2",bind.sbParam2)
+        updatParamBool("clear",bind.swBool1)
+        Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
+    }
+    //"Bounce bar" , color1 , parm1 , parm1
+    private fun piBounceBar(){
+        val index = bind.spEffect.selectedItemPosition
+        clearAndHideEffectInterface()
+        setEffectName(gAllData.effects[index].name)
+        if (gAllData.effects[index].editable > 0) {
+            val thisEffectData = gAllData.effects[index].data
+            val col: JsonObject
+            var r = 0
+            var g = 0
+            var b = 0
+            if (thisEffectData.has("color")){
+                col = thisEffectData.get("color").asJsonObject
+                if (col.has("r")) { r = col.get("r").asInt  }
+                if (col.has("g")) { g = col.get("g").asInt  }
+                if (col.has("b")) { b = col.get("b").asInt  }
+                setParamColor(1 , r , g , b)
+            }
+            if (thisEffectData.has("size")) {
+                setParamVal(1, "Size :", thisEffectData.get("size").asInt, 3, 10)
+            }
+            if (thisEffectData.has("delay")) {
+                setParamVal(2, "Delay :", thisEffectData.get("delay").asInt, 10, 250)
+            }
+            showConfirmButton()
+        }
+    }
+    private fun upBounceBar(){
+        updateParamCol("color",bind.edColor1)
+        updateParamVal("size",bind.sbParam1)
+        updateParamVal("delay",bind.sbParam2)
+        Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
+    }
+    //"Chillout" , parm1 , parm2
+    private fun piChillout(){
+        val index = bind.spEffect.selectedItemPosition
+        clearAndHideEffectInterface()
+        setEffectName(gAllData.effects[index].name)
+        if (gAllData.effects[index].editable > 0) {
+            val thisEffectData = gAllData.effects[index].data
+            if (thisEffectData.has("heat")) {
+                setParamVal(1, "Heat :", thisEffectData.get("heat").asInt, 0, 140)
+            }
+            if (thisEffectData.has("delay")) {
+                setParamVal(2, "Delay :", thisEffectData.get("delay").asInt, 20, 70)
+            }
+            showConfirmButton()
+        }
+    }
+    private fun upChillout() {
+        updateParamVal("heat",bind.sbParam1)
+        updateParamVal("delay",bind.sbParam2)
+        Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
+    }
+    //"Comet", color , parm1 , parm2 , bool
+    private fun piComet(){
+        val index = bind.spEffect.selectedItemPosition
+        clearAndHideEffectInterface()
+        setEffectName(gAllData.effects[index].name)
+        if (gAllData.effects[index].editable > 0) {
+            val thisEffectData = gAllData.effects[index].data
+            val col: JsonObject
+            var r = 0
+            var g = 0
+            var b = 0
+            if (thisEffectData.has("color")){
+                col = thisEffectData.get("color").asJsonObject
+                if (col.has("r")) { r = col.get("r").asInt  }
+                if (col.has("g")) { g = col.get("g").asInt  }
+                if (col.has("b")) { b = col.get("b").asInt  }
+                setParamColor(1 , r , g , b)
+            }
+            if (thisEffectData.has("size")) {
+                setParamVal(1, "Size :", thisEffectData.get("size").asInt, 3, 10)
+            }
+            if (thisEffectData.has("delay")) {
+                setParamVal(2, "Delay :", thisEffectData.get("delay").asInt, 10, 100)
+            }
+            if (thisEffectData.has("solid")){
+                setParamBool(1,"Rainbow :",thisEffectData.get("solid").asInt)
+            }
+
+            showConfirmButton()
+        }
+    }
+    private fun upComet(){
+        updateParamCol("color",bind.edColor1)
+        updateParamVal("size",bind.sbParam1)
+        updateParamVal("delay",bind.sbParam2)
+        updatParamBool("solid",bind.swBool1)
+        Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         bind = ActivityMainBinding.inflate(layoutInflater)
@@ -1119,6 +1288,14 @@ class MainActivity : AppCompatActivity(){
                     "Rainbow sine" -> piRainbowSine()
                     "Fast rainbow" -> piFastRainbow()
                     "Pulse rainbow" -> piPulseRainbow()
+                    "Fireworks" -> piFireworks()
+                    //"Fireworks 2" -> piFireworks2() //not implemented
+                    //"Sin-neon" -> piSinNeon() //not implemented
+                    //"Carusel" -> piCarusel()// not implemented
+                    "Color Wipe" -> piColorWipe()
+                    "Bounce bar" -> piBounceBar()
+                    "Chillout" -> piChillout()
+                    "Comet" -> piComet()
                     else -> clearAndHideEffectInterface()
                 }
 
@@ -1310,6 +1487,14 @@ class MainActivity : AppCompatActivity(){
                 "Rainbow sine" -> upRainbowSine()
                 "Fast rainbow" -> upFastRainbow()
                 "Pulse rainbow" -> upPulseRainbow()
+                "Fireworks" -> upFireworks()
+                //"Fireworks 2" -> upFireworks2() //not implemented
+                //"Sin-neon" -> upSinNeon() //not implemented
+                //"Carusel" -> upCarusel()// not implemented
+                "Color Wipe" -> upColorWipe()
+                "Bounce bar" -> upBounceBar()
+                "Chillout" -> upChillout()
+                "Comet" -> upComet()
             }
         }
 
