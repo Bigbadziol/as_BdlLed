@@ -7,9 +7,11 @@
  */
 package com.example.bdlled
 
+import android.bluetooth.BluetoothDevice
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -27,16 +29,25 @@ import jsonData
 
 var gAllData = Gson().fromJson(jsonData,jAllData::class.java)
 
-//var selectedEffect = jEffect("[empty]",0, JsonObject())
-
-
-//class MainActivity : AppCompatActivity() , AdapterView.OnItemSelectedListener{ //"pojebane"
 class MainActivity : AppCompatActivity(){
     private lateinit var bind : ActivityMainBinding
+
+    var myDevices : ArrayList<BluetoothDevice> = ArrayList() //list form start activity
     /*
         Prepare main settings interface : turn on visibility of components,
         get data from json
      */
+    private fun piConnection(){
+        //CONNECTION PART
+        var myDevicesNames = arrayOf<String>()
+        for (d in myDevices){
+            val name = d.name
+            myDevicesNames += name
+        }
+        val adapterDevices = ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,myDevicesNames)
+        bind.spDevices.adapter = adapterDevices
+    }
+
     private fun piMain(){
         var effectNames = arrayOf<String>()
         for (e in gAllData.effects.indices){
@@ -84,6 +95,11 @@ class MainActivity : AppCompatActivity(){
 
     }
 
+    private fun hideMainInterface(){
+        bind.panelMainSettings.setVisibility(false)
+    }
+
+
     //All set "Metods" simply turn on visibility and set params
     //This methods do only UI stuff, DONT set any datas
     /*
@@ -94,7 +110,7 @@ class MainActivity : AppCompatActivity(){
         p.max = 255
         p.setProgress(0,false)
     }
-    private fun clearAndHideEffectInterface(){
+    private fun hideEffectInterface(){
         bind.tvEffectName.text = resources.getString(R.string.tvEffectName)
         bind.edColor1.setBackgroundColor(Color.parseColor("#000000"))
         bind.edColor2.setBackgroundColor(Color.parseColor("#000000"))
@@ -109,8 +125,6 @@ class MainActivity : AppCompatActivity(){
                                                 resources.getStringArray(R.array.TestCustomParameterList))
  */
         bind.spCustom.setSelection(0)
-
-
         bind.lbParam1.text = resources.getString(R.string.lbParam1)
         clearParamVal(bind.sbParam1)
         bind.lbParam2.text = resources.getString(R.string.lbParam2)
@@ -332,8 +346,6 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-
-
     // This methods updates data structures
     private fun prepareUpdatedData() : String {
         val thisEffect = gAllData.effects[bind.spEffect.selectedItemPosition]
@@ -368,7 +380,7 @@ class MainActivity : AppCompatActivity(){
     // "Beat wave" parm1 , parm2 , parm3 , parm4
     private fun piBeatWave(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -399,7 +411,7 @@ class MainActivity : AppCompatActivity(){
     //"Blend wave" parm1 , parm2 , parm3
     private fun piBlendWave(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -426,7 +438,7 @@ class MainActivity : AppCompatActivity(){
     //"Blur" parm1 , parm2 , parm3 , parm4
     private fun piBlur(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -457,7 +469,7 @@ class MainActivity : AppCompatActivity(){
     //"Confeti" palette , parm1 , parm2
     private fun piConfeti(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -482,7 +494,7 @@ class MainActivity : AppCompatActivity(){
     //"Sinelon" , parm1 , parm2
     private fun piSinelon(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -503,7 +515,7 @@ class MainActivity : AppCompatActivity(){
     //"Bpm" palette , parm1
     private fun piBpm(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -515,18 +527,16 @@ class MainActivity : AppCompatActivity(){
             }
             showConfirmButton()
         }
-
     }
     private fun upBpm(){
         updatePalette("pIndex")
         updateParamVal("bpm",bind.sbParam1)
         Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
-
     }
     //"Juggle" parm1 , parm2
     private fun piJuggle(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -547,7 +557,7 @@ class MainActivity : AppCompatActivity(){
     //"Dot beat" color1 ,color2 , parm1 , parm2
     private fun piDotBeat(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -577,7 +587,6 @@ class MainActivity : AppCompatActivity(){
             }
             showConfirmButton()
         }
-
     }
     private fun upDotBeat(){
         updateParamCol("color1",bind.edColor1)
@@ -585,12 +594,11 @@ class MainActivity : AppCompatActivity(){
         updateParamVal("bpm",bind.sbParam1)
         updateParamVal("fadeMod",bind.sbParam2)
         Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
-
     }
     //"Easing" color1 , parm1
     private fun piEasing(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -615,12 +623,11 @@ class MainActivity : AppCompatActivity(){
         updateParamCol("color",bind.edColor1)
         updateParamVal("multiplier",bind.sbParam1)
         Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
-
     }
     //"Hyper dot" color1 ,  parm1 , parm2 , parm3
     private fun piHyperDot(){ //color 1 parm 1 parm2 parm 3
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -658,7 +665,7 @@ class MainActivity : AppCompatActivity(){
     //"Beat sin gradient" parm1 , parm2
     private fun piBeatSinGradient(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -679,7 +686,7 @@ class MainActivity : AppCompatActivity(){
     //"Fire 1" parm1 , parm2
     private fun piFire1(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -700,7 +707,7 @@ class MainActivity : AppCompatActivity(){
     //"Fire 1 two flames" parm1 , parm2
     private fun piFire1TwoFlames(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -721,7 +728,7 @@ class MainActivity : AppCompatActivity(){
     //"Worm" param1 , param2
     private fun piWorm(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -742,7 +749,7 @@ class MainActivity : AppCompatActivity(){
     //"Fire 2" custom , parm1 , parm2
     private fun piFire2(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -776,7 +783,7 @@ class MainActivity : AppCompatActivity(){
     //"Noise 1" , palette , parm1 , parm2
     private fun piNoise1(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -797,12 +804,11 @@ class MainActivity : AppCompatActivity(){
         updateParamVal("low",bind.sbParam1)
         updateParamVal("high",bind.sbParam2)
         Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
-
     }
     //"Juggle 2" parm1 , parm2 , parm3
     private fun piJuggle2(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -829,7 +835,7 @@ class MainActivity : AppCompatActivity(){
     //"Running color dots"  palette , custom
     private fun piRunningColorDots(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -850,12 +856,11 @@ class MainActivity : AppCompatActivity(){
         updatePalette("pIndex")
         updateCustom("dir") //data gets form spCustom
         Toast.makeText(this, prepareUpdatedData(), Toast.LENGTH_LONG).show()
-
     }
     //"Disco 1" palette , parm1
     private fun piDisco1(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -877,7 +882,7 @@ class MainActivity : AppCompatActivity(){
     //"Running color dots 2" palette , color1 , param1 , param2
     private fun piRunningColorDots2(){ //color 1 parm 1 bool1
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -914,7 +919,7 @@ class MainActivity : AppCompatActivity(){
     //"Disco dots" parm1
     private fun piDiscoDots(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -931,7 +936,7 @@ class MainActivity : AppCompatActivity(){
     // "Plasma" palette , parm1 , parm2 , parm 3
     private fun piPlasma(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -960,7 +965,7 @@ class MainActivity : AppCompatActivity(){
     //"Rainbow sine" , parm1 , parm2
     private fun piRainbowSine(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -981,7 +986,7 @@ class MainActivity : AppCompatActivity(){
     //"Fast rainbow" , parm1 , parm2
     private fun piFastRainbow(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -1002,7 +1007,7 @@ class MainActivity : AppCompatActivity(){
     //"Pulse rainbow" , custom ,parm1 , parm2 , parm3
     private fun piPulseRainbow(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -1038,7 +1043,7 @@ class MainActivity : AppCompatActivity(){
     //"Fireworks" , parm1 , parm2
     private fun piFireworks(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -1068,7 +1073,7 @@ class MainActivity : AppCompatActivity(){
     //"Color Wipe" , color1 , color2 , parm1 , parm2 , bool
     private fun piColorWipe(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -1115,7 +1120,7 @@ class MainActivity : AppCompatActivity(){
     //"Bounce bar" , color1 , parm1 , parm1
     private fun piBounceBar(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -1148,7 +1153,7 @@ class MainActivity : AppCompatActivity(){
     //"Chillout" , parm1 , parm2
     private fun piChillout(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -1169,7 +1174,7 @@ class MainActivity : AppCompatActivity(){
     //"Comet", color , parm1 , parm2 , bool
     private fun piComet(){
         val index = bind.spEffect.selectedItemPosition
-        clearAndHideEffectInterface()
+        hideEffectInterface()
         setEffectName(gAllData.effects[index].name)
         if (gAllData.effects[index].editable > 0) {
             val thisEffectData = gAllData.effects[index].data
@@ -1207,27 +1212,26 @@ class MainActivity : AppCompatActivity(){
 
     override fun onCreate(savedInstanceState: Bundle?) {
         bind = ActivityMainBinding.inflate(layoutInflater)
-        val devicesList = resources.getStringArray(R.array.TestDeviceList) //przeniesione z blok 1
+
         val modeList = resources.getStringArray(R.array.ModeList)
-        //val effectList = resources.getStringArray(R.array.TestEffectList)  //efekty z zasobow do pierwotnych testow
         val paletteList = resources.getStringArray(R.array.PaletteList)
-        val customList = resources.getStringArray(R.array.TestCustomParameterList)
+        val customList = resources.getStringArray(R.array.TestCustomParameterList)//nad tym tez trzeba popracowac, znaczy sie wyjebac
         super.onCreate(savedInstanceState)
         setContentView(bind.root)
+
+        myDevices = intent.getParcelableArrayListExtra<BluetoothDevice>("START_DEVICE_LIST") as ArrayList<BluetoothDevice>
+        Log.i("ESP_DEVICE_LIST_SIZE", "${myDevices.size}")
+        for (d in myDevices){
+            val adr = d.address
+            val name = d.name
+            Log.i("ESP_MAIN","$adr -> $name")
+        }
+        piConnection() //prepare interface connection
         piMain() //prepare interface main
 
         //--------------------------connection panel------------------------------------------------
-        //simple_spinner_item
-        //simple_spinner_dropdown_item - wyglada najlepiej
-        //val devicesList2 = arrayOf("Wybor 1" , "Wybor 2 " , "Wybor 3") // i do adaptera
-        //-----decices list
-        //Blok 1 - Poczatek
-        val adapterDevices = ArrayAdapter(this,
-            android.R.layout.simple_spinner_dropdown_item,devicesList)
-        bind.spDevices.adapter = adapterDevices
         bind.spDevices.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>,  view: View, position: Int, id: Long) {
-                    //Toast.makeText(this@MainActivity, "" + devicesList[position], Toast.LENGTH_SHORT).show()
                     Toast.makeText(this@MainActivity, "DEVICE : " + parent.getItemAtPosition(position), Toast.LENGTH_SHORT).show()
                 }
 
@@ -1235,7 +1239,7 @@ class MainActivity : AppCompatActivity(){
                 // write code to perform some action
                 }
             }
-        //Blok 1 - Koniec
+
         //----btn connect
         bind.btnConnect.setOnClickListener {
             Toast.makeText(this, "Conneting to device", Toast.LENGTH_SHORT).show()
@@ -1296,7 +1300,7 @@ class MainActivity : AppCompatActivity(){
                     "Bounce bar" -> piBounceBar()
                     "Chillout" -> piChillout()
                     "Comet" -> piComet()
-                    else -> clearAndHideEffectInterface()
+                    else -> hideEffectInterface()
                 }
 
                 Toast.makeText(this@MainActivity, "E: " + parent.getItemAtPosition(position) + " : " + position, Toast.LENGTH_SHORT).show()
@@ -1502,11 +1506,10 @@ class MainActivity : AppCompatActivity(){
         // TEST PANEL///
         bind.btnTest1.setOnClickListener {
 
-
+            piMain()
         }
         bind.btnTest2.setOnClickListener {
-
-
+            bind.panelMainSettings.setVisibility(false)
         }
         bind.btnTest3.setOnClickListener {
 

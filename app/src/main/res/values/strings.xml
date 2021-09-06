@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BdlLed 1.1.60</string>
+    <string name="app_name">BdlLed 1.1.70</string>
 
     <string name="lbMode">Tryb pracy :</string>
     <string name="btnConnect">Połącz</string>
