@@ -7,10 +7,15 @@
  */
 package com.example.bdlled
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothServerSocket
+import android.bluetooth.BluetoothSocket
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Message
 import android.util.Log
 import android.view.View
 import android.widget.*
@@ -24,21 +29,223 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import jAllData
 import jsonData
+import jsonData_small
+import java.io.IOException
+import java.io.InputStream
+import java.util.*
+import kotlin.collections.ArrayList
 
-
+const val SERVICE_NAME = "KrzysService"
+//val uuid: UUID = UUID.fromString("06AE0A74-7BD4-43AA-AB5D-2511F3F6BAB1")
+val uuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+lateinit var mySelectedBluetoothDevice: BluetoothDevice
+lateinit var bluetoothAdapter: BluetoothAdapter
+lateinit var appSocket: BluetoothSocket
+lateinit var espSocket: BluetoothSocket
+lateinit var myHandler: Handler
+lateinit var dataHandler: Handler //only for data handling from ESP
 
 var gAllData = Gson().fromJson(jsonData,jAllData::class.java)
 
+
 class MainActivity : AppCompatActivity(){
     private lateinit var bind : ActivityMainBinding
-
     var myDevices : ArrayList<BluetoothDevice> = ArrayList() //list form start activity
+    var startPos : Int = 0 // position in list , current sellected device
+    var espState : EspConnectionState = EspConnectionState.DISCONNECTED
+    //----------------------------------------------------------------------------------------------
+    private inner class BtHandler : Handler(){
+        var allMessage : String =""
+        var tmp: String=""
+        override fun handleMessage(msg: Message) {
+            var readBuf = msg.obj as String
+            Log.d("DEBUG_INSIDE",readBuf.length.toString())
+            when (msg.what){
+                1 ->{
+                    //Log.d("INSIDE_BUF",readBuf.length.toString())
+                    if (readBuf.length == 330){
+                        allMessage += readBuf
+                    }else{
+                        allMessage += readBuf
+                        if (allMessage.length-1 > 0) {
+                            jsonData = allMessage.substring(0, allMessage.length - 1)
+                            gAllData = Gson().fromJson(jsonData ,jAllData::class.java)
+                            allMessage = ""
+                            Log.d("DEBUG_INSIDE","Data loaded system alive")
+                            piMain()
+                        }
+                    }
+                }
+            }
+            super.handleMessage(msg)
+        }
+    }
+    //----------------------------------------------------------------------------------------------
+    private inner class AcceptIncommingThread() : Thread() {
+        // val serverSocket: BluetoothServerSocket?
+        val mmServerSocket: BluetoothServerSocket? by lazy(LazyThreadSafetyMode.NONE) {
+            //bluetoothAdapter?.listenUsingRfcommWithServiceRecord(SERVICE_NAME,uuid)
+            bluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(SERVICE_NAME,uuid)
+        }
+        override fun run() {
+            var shouldLoop = true
+            Log.d("DEBUG_ESP_INCOMMING" , "RUN processs...")
+            while (shouldLoop) {
+                val newSocket: BluetoothSocket? = try {
+                    mmServerSocket?.accept()
+                } catch (e: IOException) {
+                    Log.d("DEBUG_ESP", "Socket's accept() method failed", e)
+                    shouldLoop = false
+                    null
+                }
+                newSocket?.also {
+                    //manageMyConnectedSocket(it)
+                    Log.d("DEBUG_ESP","Before ESP handling")
+                    espSocket = newSocket
+                    ConnectedThread(espSocket).start()
+                    mmServerSocket?.close()
+                    shouldLoop = false
+                }
+            }
+        }
+        //------------------------------------------------------------------------------------------
+
+        // Closes the connect socket and causes the thread to finish.
+        fun cancel() {
+            try {
+                mmServerSocket?.close()
+            } catch (e: IOException) {
+                Log.d("DEBUG_ESP", "Could not close the connect socket", e)
+            }
+        }
+    }
+    //----------------------------------------------------------------------------------------------
+    private inner class ConnectedThread(private val socket: BluetoothSocket) : Thread() {
+        override fun run() {
+            var inputStream = socket.inputStream
+            var buffer = ByteArray(10240)
+            var bytes = 0
+            var thisMessage: String = "" //      this var is init inside old version
+            Log.d("DEBUG_ESP", "Waiting for data, ...")
+            while (true) {
+                try {
+                    /*
+                    //OLD VERSION
+                    bytes = inputStream.read(buffer, bytes, 10240 - bytes)
+                    val thisMessage= String(buffer).substring(0, bytes-1) //linuxy/windowsy , znak konca
+                    bytes = 0
+                     */
+                    bytes = inputStream.read(buffer)
+                    Log.d("DEBUG_DATA_SIZE", bytes.toString())
+                    thisMessage  = String(buffer, 0, bytes)
+                    //if (bytes == -1 || bytes == 0 || bytes == null){ Log.d("DBT_S", "WHY ?????") }
+                    dataHandler.obtainMessage(1,thisMessage).sendToTarget()
+                } catch (e :IOException) {
+                    e.printStackTrace()
+                    Log.d("DEBUG_ESP", "Data error")
+                    break
+                }
+            }
+        }
+    }
+    //----------------------------------------------------------------------------------------------
+    private inner class ConnectThread(device: BluetoothDevice): Thread() {
+        //        private var newSocket = device.createRfcommSocketToServiceRecord(uuid)
+        private var newSocket = device.createInsecureRfcommSocketToServiceRecord(uuid)
+        var buffer = ByteArray(10240)
+        var bytes: Int = 0
+        override fun run() {
+            try {
+                Log.d("DEBUG_APP", "Connecting socket")
+                myHandler.post {
+                    //bind.connectedOrNotTextView.text = "Connecting..." //OLD
+                    espState = EspConnectionState.CONNECTING
+                    handlePanelsVisibility()
+                }
+                appSocket = newSocket
+                appSocket.connect()
+
+                Log.d("DEBUG_APP", "Socket connected")
+                myHandler.post {
+                    //bind.connectedOrNotTextView.text = "Connected" //OLD
+                    espState = EspConnectionState.CONNECTED
+                    handlePanelsVisibility()
+                }
+                ConnectedThread(appSocket).start()
+                //ConnectThread(mySelectedBluetoothDevice).writeMessage("""{"cmd" : "DATA_TEST" }""")
+                ConnectThread(mySelectedBluetoothDevice).writeMessage("""{"cmd" : "DATA_PLEASE" }""")
+            }catch (e1: Exception){
+                Log.d("DEBUG_APP", "Error connecting socket, $e1")
+                myHandler.post {
+                    //bind.connectedOrNotTextView.text = "Connection failed" //OLD
+                    espState = EspConnectionState.CONNECTION_ERROR
+                    handlePanelsVisibility()
+                }
+            }
+            // ConnectedThread w teorii, ten kod w tym miejscu zwyczajnie nie jest odpalany
+            // Na pale osobny wątek w pętli głownej
+
+        }
+        fun writeMessage(newMessage: String){
+            Log.d("DEBUG_APP", "Sending")
+            val outputStream = appSocket.outputStream
+            try {
+                outputStream.write(newMessage.toByteArray())
+                outputStream.flush()
+                Log.d("DEBUG_APP", "Sent " + newMessage)
+
+            } catch (e: Exception) {
+                Log.d("DEBUG_APP", "Cannot send, " + e)
+                return
+            }
+        }
+        fun cancel(){
+            try {
+                appSocket.close()
+            } catch (e: IOException) {
+                Log.d("DEBUG_APP", "Cant close socket", e)
+            }
+        }
+    }
     /*
         Prepare main settings interface : turn on visibility of components,
         get data from json
      */
+    private fun handlePanelsVisibility(){
+        when (espState){
+            EspConnectionState.DISCONNECTED -> {
+                hideMainInterface()
+                hideEffectInterface()
+                bind.btnConnect.isEnabled = true
+                bind.spDevices.isEnabled = true
+                bind.btnConnect.text = getString(R.string.iConnect)
+            }
+
+            EspConnectionState.CONNECTING ->{
+                hideMainInterface()
+                hideEffectInterface()
+                bind.btnConnect.isEnabled = false
+                bind.spDevices.isEnabled = false
+                bind.btnConnect.text =getString(R.string.iConnect)
+
+            }
+            EspConnectionState.CONNECTED -> {
+                bind.btnConnect.isEnabled = true
+                bind.spDevices.isEnabled = false
+                bind.btnConnect.text =getString(R.string.iDisconnect)
+            }
+            EspConnectionState.CONNECTION_ERROR ->{
+                bind.btnConnect.isEnabled = true
+                bind.spDevices.isEnabled = true
+                bind.btnConnect.text =getString(R.string.iConnect)
+            }
+        }
+        bind.tvStatus.text = espState.description
+    }
+
     private fun piConnection(){
         //CONNECTION PART
+        //now from Bluetooth device list  to string list to device adapter....
         var myDevicesNames = arrayOf<String>()
         for (d in myDevices){
             val name = d.name
@@ -46,6 +253,7 @@ class MainActivity : AppCompatActivity(){
         }
         val adapterDevices = ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,myDevicesNames)
         bind.spDevices.adapter = adapterDevices
+        bind.spDevices.setSelection(startPos)
     }
 
     private fun piMain(){
@@ -275,13 +483,13 @@ class MainActivity : AppCompatActivity(){
                     bind.lbBool1.setVisibility(true)
                     bind.lbBool1.text = desc
                     bind.swBool1.setVisibility(true)
-                    bind.swBool1.setChecked(tmpBool)
+                bind.swBool1.isChecked = tmpBool
                 }
             2-> {
                     bind.lbBool2.setVisibility(true)
                     bind.lbBool2.text = desc
                     bind.swBool2.setVisibility(true)
-                    bind.swBool2.setChecked(tmpBool)
+                bind.swBool2.isChecked = tmpBool
                 }
         }
     }
@@ -358,25 +566,7 @@ class MainActivity : AppCompatActivity(){
         return toSendEffect.toString()
     }
 
-    /*
-    * pi - prepare interface
-    *  Idea - > Get Data from "current sellected" object
-    * */
-/*
-    private fun piTest(){
-        clearAndHideEffectInterface()
-        setEffectName("!Fajer 2!")
-        setParamColor(2,255,128,128)
-        setPalette(3)
-        val cp = arrayOf("Ala","Ma","Kota","Milicja","Ma","Pale")
-        setCustom("MRAU!",cp,3)
-        setParamVal(1,"Fade",180,128,196)
-        setParamVal(2,"Papa2:",6,5,10)
-        setParamBool(1,"This T",true)
-        setParamBool(2,"ThisF",false)
-        showConfirmButton()
-    }
-*/
+
     // "Beat wave" parm1 , parm2 , parm3 , parm4
     private fun piBeatWave(){
         val index = bind.spEffect.selectedItemPosition
@@ -1219,15 +1409,26 @@ class MainActivity : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         setContentView(bind.root)
 
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+
+        AcceptIncommingThread().start() // listen for controlers , trying to connect to app (backward flow)
+        myHandler = Handler()    //handle data from  threds : AcceptIncommingThread() ,
+        dataHandler = BtHandler()
+
+
+        //data from StartActivity
         myDevices = intent.getParcelableArrayListExtra<BluetoothDevice>("START_DEVICE_LIST") as ArrayList<BluetoothDevice>
         Log.i("ESP_DEVICE_LIST_SIZE", "${myDevices.size}")
+        startPos = intent.getIntExtra("START_CURRENT_SELECTED",0)
         for (d in myDevices){
             val adr = d.address
             val name = d.name
             Log.i("ESP_MAIN","$adr -> $name")
         }
         piConnection() //prepare interface connection
-        piMain() //prepare interface main
+        //piMain() //prepare interface main
+        hideMainInterface()
+        hideEffectInterface()
 
         //--------------------------connection panel------------------------------------------------
         bind.spDevices.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -1239,10 +1440,23 @@ class MainActivity : AppCompatActivity(){
                 // write code to perform some action
                 }
             }
-
         //----btn connect
         bind.btnConnect.setOnClickListener {
-            Toast.makeText(this, "Conneting to device", Toast.LENGTH_SHORT).show()
+            mySelectedBluetoothDevice = bluetoothAdapter.getRemoteDevice("AC:67:B2:2C:D2:B2")
+            when (espState){
+                EspConnectionState.DISCONNECTED ->{
+                    ConnectThread(mySelectedBluetoothDevice).start()
+                }
+                EspConnectionState.CONNECTION_ERROR ->{
+                    //ConnectThread(mySelectedBluetoothDevice).start()
+                }
+                EspConnectionState.CONNECTED ->{
+                    ConnectThread(mySelectedBluetoothDevice).cancel()
+                    espState = EspConnectionState.DISCONNECTED
+                    handlePanelsVisibility()
+                }
+            }
+            Toast.makeText(this, "Fake Conneting to device", Toast.LENGTH_SHORT).show()
         }
         //------------------------main settings-----------------------------------------------------
         //-----mode
@@ -1251,7 +1465,6 @@ class MainActivity : AppCompatActivity(){
         bind.spMode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>, view: View, position: Int, id: Long) {
-
                 //Toast.makeText(this@MainActivity, "M: " + parent.getItemAtPosition(position) + " : " + position, Toast.LENGTH_SHORT).show()
             }
             override fun onNothingSelected(parent: AdapterView<*>) {
@@ -1501,18 +1714,23 @@ class MainActivity : AppCompatActivity(){
                 "Comet" -> upComet()
             }
         }
-
         //------------------------test panel--------------------------------------------------------
         // TEST PANEL///
         bind.btnTest1.setOnClickListener {
-
-            piMain()
+            //espState = EspConnectionState.DISCONNECTED
+            //handlePanelsVisibility()
+            val AppInstance = ConnectThread(mySelectedBluetoothDevice)
+            AppInstance.writeMessage("""{"cmd" : "DATA_TEST" }""")
+            return@setOnClickListener
         }
         bind.btnTest2.setOnClickListener {
-            bind.panelMainSettings.setVisibility(false)
+
         }
         bind.btnTest3.setOnClickListener {
-
+            //espState = EspConnectionState.CONNECTED
+            //handlePanelsVisibility()
+        }
+        bind.btnTest4.setOnClickListener {
 
         }
     }

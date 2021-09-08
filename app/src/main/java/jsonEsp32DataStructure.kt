@@ -19,9 +19,7 @@ data class jEffect(
 )
 
 data class jAllData(
+    var cmd : String,
     var config : jConfig ,
     var effects : List<jEffect>
 )
-
-class jsonEsp32DataStructure {
-}

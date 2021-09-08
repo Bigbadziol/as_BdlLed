@@ -20,32 +20,40 @@
             android:textAlignment="center"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
     <ListView
         android:id="@+id/lvDeviceList"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:listitem="@layout/device_list_row"
-        />
+        android:layout_height="400dp"
+
+        tools:listitem="@layout/device_list_row" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="82dp"
-        android:gravity="bottom"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/btnTest"
-            android:layout_width="110dp"
+            android:id="@+id/btnAddDevice"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
-            android:text="Testuj" />
+
+            android:text="@string/btnAddDevice" />
 
         <Button
             android:id="@+id/btnNext"
-            android:layout_width="200dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
-            android:text="Pomin" />
+
+            android:text="@string/btnNext" />
     </LinearLayout>
 
 </LinearLayout>

@@ -1,12 +1,67 @@
 
-val jsonData : String ="""
-{
+
+var jsonData_small = """{
+    "cmd":"DATA",
 	"config": {
 		"mode": 0,
-		"selected": 4,
+		"selected": 0,
 		"color": {
-			"r": 128,
-			"g": 63,
+			"r": 255,
+			"g": 255,
+			"b": 67
+		},
+		"time": 20
+	}
+, 
+	"effects": [
+	{
+		"name": "Beat wave",
+		"editable": 1,
+		"data": {
+			"pulse1": 6,
+			"pulse2": 7,
+			"pulse3": 8,
+			"pulse4": 9
+		}
+	},
+	{
+		"name": "Blend wave",
+		"editable": 1,
+		"data": {
+			"speed": 6,
+			"mH1": 6,
+			"mH2": 8
+		}
+	}
+]
+}""".trimIndent()
+var jsonData_default : String = """
+{
+    "cmd":"DUPA",
+	"config": {
+		"mode": 0,
+		"selected": 0,
+		"color": {
+			"r": 0,
+			"g": 128,
+			"b": 64
+		},
+		"time": 20
+	}
+, 
+	"effects": []
+}""".trimIndent()
+
+///--------BIG DATA------
+var jsonData : String ="""
+{
+    "cmd":"DUPA",
+	"config": {
+		"mode": 0,
+		"selected": 6,
+		"color": {
+			"r": 255,
+			"g": 255,
 			"b": 67
 		},
 		"time": 20

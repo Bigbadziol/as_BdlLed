@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BdlLed 1.1.70</string>
+    <string name="app_name">BdlLed 1.1.89</string>
 
     <string name="lbMode">Tryb pracy :</string>
     <string name="btnConnect">Połącz</string>
@@ -11,13 +11,13 @@
     <string name="btnMainConfirm">Zatwierdz zmiany</string>
 
     <string name="tvEffectName">[NAZWA EFEKTU]</string>
-    <string name="tvEffectNameTest">[FireWorks]</string>
     <string name="lbTimeVal">0</string>
     <string name="btnColor1">Kolor 1</string>
     <string name="btnColor2">Kolor 2</string>
     <string name="btnTest1">test 1</string>
     <string name="btnTest2">test 2</string>
     <string name="btnTest3">test 3</string>
+    <string name="btnTest4">test 4</string>
     <string name="lbCustom">Zmienny :</string>
     <string name="lbParam1">Param 1:</string>
     <string name="lbParam1Val">1</string>
@@ -30,6 +30,10 @@
     <string name="lbBool1">Bool 1:</string>
     <string name="lbBool2">Bool 2:</string>
     <string name="btnEffectConfirm">Zatwierdz zmiany</string>
+    <string name="btnAddDevice">Dodaj</string>
+    <string name="btnNext">Dalej</string>
+    <string name="iConnect">Połącz</string>
+    <string name="iDisconnect">Rozłącz</string>
 
 
     <string-array name="TestDeviceList">
